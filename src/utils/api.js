@@ -39,6 +39,20 @@ export const api = {
     return res.json();
   },
 
+  // NEW: GET all BTS analytics
+  async getAllAnalytics(period) {
+    const res = await fetch(`${base}/api/analytics/all?period=${period}`);
+    if (!res.ok) throw new Error("Failed to fetch all analytics");
+    return res.json();
+  },
+
+  // NEW: Download excel report
+  async downloadExcel(period) {
+    const res = await fetch(`${base}/api/analytics/report/excel/${period}`);
+    if (!res.ok) throw new Error("Failed to download report");
+    return res.blob();
+  },
+
   async ask(question) {
     const res = await fetch(`${base}/api/ask`, {
       method: "POST",

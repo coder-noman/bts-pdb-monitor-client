@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminPage from "./pages/AdminPage";
 import AskPage from "./pages/AskPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 const fontLink = document.createElement("link");
 fontLink.href = "https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap";
@@ -13,7 +14,7 @@ document.head.appendChild(fontLink);
 
 function AppInner() {
   const { user, role, loading, setRole } = useAuth();
-  const [view, setView] = useState("dashboard"); // "dashboard"|"adminLogin"|"admin"|"ask"
+  const [view, setView] = useState("dashboard"); // "dashboard"|"adminLogin"|"admin"|"ask"|"analytics"
 
   if (loading) {
     return (
@@ -37,6 +38,10 @@ function AppInner() {
     return <AskPage onBack={() => setView("dashboard")} />;
   }
 
+  if (view === "analytics") {
+    return <AnalyticsPage onBack={() => setView("dashboard")} />;
+  }
+
   if (view === "adminLogin") {
     return (
       <AdminLoginPage
@@ -54,6 +59,7 @@ function AppInner() {
     <DashboardPage
       onAdminClick={() => setView("adminLogin")}
       onAskClick={() => setView("ask")}
+      onAnalyticsClick={() => setView("analytics")}
       onLogout={() => setView("dashboard")}
     />
   );
