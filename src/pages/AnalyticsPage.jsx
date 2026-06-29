@@ -228,7 +228,7 @@ export default function AnalyticsPage({ onBack }) {
             ) : error ? (
               <div className="flex items-center justify-center h-64 text-red-400 text-sm">{error}</div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 150px)" }}>
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-slate-800/90 backdrop-blur text-slate-400 text-xs uppercase tracking-wider">
@@ -308,9 +308,6 @@ export default function AnalyticsPage({ onBack }) {
                 </table>
               </div>
             )}
-          </div>
-          <div className="mt-3 text-xs text-slate-600">
-            Click any row to view detailed analytics for that BTS · Sorted: Highest downtime → Lowest uptime
           </div>
         </div>
       </div>
@@ -440,7 +437,7 @@ function SingleBTSModal({ router, period, onClose }) {
               </div>
 
               {/* Full detail table */}
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
+              {/* <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-700/50">
                   <span className="text-white font-semibold text-sm">Full Analytics Details</span>
                 </div>
@@ -486,7 +483,7 @@ function SingleBTSModal({ router, period, onClose }) {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </div> */}
             </>
           ) : null}
         </div>

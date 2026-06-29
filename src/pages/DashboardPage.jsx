@@ -6,7 +6,6 @@ import HistoryModal from "../components/HistoryModal";
 import logo from "../../assets/logo.svg";
 
 const REFRESH_INTERVAL = 30000;
-const PAGE_SIZE = 20;
 
 function StatusBadge({ status }) {
   const isUp = status === "Up";
@@ -22,36 +21,12 @@ function StatusBadge({ status }) {
   );
 }
 
-function CountdownTimer({ seconds }) {
-  const [elapsed, setElapsed] = useState(seconds || 0);
-  useEffect(() => {
-    setElapsed(seconds || 0);
-    const interval = setInterval(() => setElapsed(s => s + 1), 1000);
-    return () => clearInterval(interval);
-  }, [seconds]);
-  const h = Math.floor(elapsed / 3600);
-  const m = Math.floor((elapsed % 3600) / 60);
-  const s = elapsed % 60;
-  const display = h > 0
-    ? `${h}h ${m}min ${s}s`
-    : m > 0
-    ? `${m}min ${s}s`
-    : `${s}s`;
-  return (
-    <span className="inline-flex items-center gap-1.5 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg px-2 py-1 text-xs font-bold font-mono">
-      <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shrink-0" />
-      {display}
-    </span>
-  );
-}
-
 export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsClick, onLogout }) {
   const { logout } = useAuth();
   const [routers, setRouters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [countdown, setCountdown] = useState(30);
   const [historyRouter, setHistoryRouter] = useState(null);
@@ -98,24 +73,16 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
     .sort((a, b) => (a.up_time || 0) - (b.up_time || 0));
 
   const allSorted = [...downRouters, ...upRouters];
-
   const baseList = statusFilter ? filteredByStatus : allSorted;
-
   const filtered = baseList.filter(r =>
     r.bts_name?.toLowerCase().includes(search.toLowerCase()) ||
     r.ip_address?.includes(search)
   );
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   const totalDown = routers.filter(r => r.status === "Down").length;
   const totalUp = routers.filter(r => r.status === "Up").length;
 
-  function handleSearch(v) {
-    setSearch(v);
-    setPage(1);
-  }
+  function handleSearch(v) { setSearch(v); }
 
   async function handleCardClick(type) {
     if (statusFilter === type) {
@@ -134,7 +101,6 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
     } finally {
       setStatusLoading(false);
     }
-    setPage(1);
   }
 
   const handleLogout = async () => {
@@ -143,22 +109,18 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
   };
 
   return (
-    <div className="min-h-screen bg-[#080c18] text-white">
+    <div className="min-h-screen bg-[#080c18] text-white flex flex-col">
       {/* Top Nav */}
       <nav className="sticky top-0 z-40 bg-[#0a0e1a]/95 backdrop-blur border-b border-slate-800">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-16 h-16 flex items-center justify-center ">
+            <div className="w-16 h-16 flex items-center justify-center">
               <img src={logo} alt="Logo" width={50} height={150} />
             </div>
             <div>
-              <div
-                className="text-base font-black tracking-tight"
-                style={{ fontFamily: "'Rajdhani', sans-serif" }}
-              >
+              <div className="text-base font-black tracking-tight" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
                 LINK3 BTS PDB MONITOR
               </div>
-              {/* <div className="text-[10px] text-slate-500 tracking-wider">NETWORK OPERATIONS CENTER</div> */}
             </div>
           </div>
 
@@ -191,46 +153,38 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
               <span className="text-xs text-slate-400">Refresh in <span className="text-cyan-400 font-bold">{countdown}s</span></span>
             </div>
 
-            <button
-              onClick={() => { fetchData(); setCountdown(30); }}
+            <button onClick={() => { fetchData(); setCountdown(30); }}
               className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-cyan-400 transition-all"
-              title="Refresh now"
-            >
+              title="Refresh now">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
 
-            <button
-              onClick={onAskClick}
-              className="flex items-center gap-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-xl px-3 py-2 text-xs font-bold transition-all"
-            >
+            <button onClick={onAskClick}
+              className="flex items-center gap-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-xl px-3 py-2 text-xs font-bold transition-all">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               Ask
             </button>
 
-            <button
-              onClick={onAnalyticsClick}
-              className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl px-3 py-2 text-xs font-bold transition-all"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Analytics
-            </button>
+            {onAnalyticsClick && (
+              <button onClick={onAnalyticsClick}
+                className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl px-3 py-2 text-xs font-bold transition-all">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Analytics
+              </button>
+            )}
 
-            <button
-              onClick={onAdminClick}
-              className="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl px-3 py-2 text-xs font-bold transition-all"
-            >
+            <button onClick={onAdminClick}
+              className="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl px-3 py-2 text-xs font-bold transition-all">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               BTS Admin
             </button>
 
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white rounded-xl px-3 py-2 text-xs font-semibold transition-all"
-            >
+            <button onClick={handleLogout}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white rounded-xl px-3 py-2 text-xs font-semibold transition-all">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
               Logout
             </button>
@@ -238,27 +192,24 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
         </div>
       </nav>
 
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
+      <div className="flex-1 flex flex-col max-w-screen-2xl mx-auto w-full px-4 sm:px-6 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
           {[
             { label: "Total BTS", value: routers.length, color: "cyan", clickable: false, icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
             { label: "Online", value: totalUp, color: "emerald", clickable: true, filterKey: "up", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
             { label: "Offline", value: totalDown, color: "red", clickable: true, filterKey: "down", icon: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" },
-            // { label: "Uptime %", value: routers.length ? `${((totalUp / routers.length) * 100).toFixed(1)}%` : "—", color: "blue", clickable: false, icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
           ].map(stat => {
             const isActive = stat.clickable && statusFilter === stat.filterKey;
             return (
-              <div
-                key={stat.label}
+              <div key={stat.label}
                 onClick={() => stat.clickable && handleCardClick(stat.filterKey)}
                 className={`bg-slate-900/60 border rounded-2xl p-4 transition-all select-none
                   ${stat.clickable ? "cursor-pointer hover:border-slate-600" : ""}
                   ${isActive
                     ? `border-${stat.color}-500/60 ring-1 ring-${stat.color}-500/30 bg-${stat.color}-500/5`
                     : "border-slate-800"
-                  }`}
-              >
+                  }`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{stat.label}</span>
                   <div className={`w-8 h-8 rounded-lg bg-${stat.color}-500/10 flex items-center justify-center`}>
@@ -289,7 +240,7 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
               Showing {statusFilter === "up" ? "Online" : "Offline"} BTS only
               {statusLoading ? " — loading..." : ` — ${filtered.length} routers`}
             </span>
-            <button onClick={() => { setStatusFilter(null); setFilteredByStatus([]); setPage(1); }}
+            <button onClick={() => { setStatusFilter(null); setFilteredByStatus([]); }}
               className="text-xs underline opacity-70 hover:opacity-100">
               Clear filter
             </button>
@@ -302,13 +253,9 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={e => handleSearch(e.target.value)}
+            <input type="text" value={search} onChange={e => handleSearch(e.target.value)}
               placeholder="Search BTS name or IP..."
-              className="w-full bg-slate-800/60 border border-slate-700/50 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 placeholder-slate-500"
-            />
+              className="w-full bg-slate-800/60 border border-slate-700/50 text-white rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 placeholder-slate-500" />
           </div>
         </div>
 
@@ -319,15 +266,23 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
           </div>
         )}
 
-        {/* Table */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+        {/* ── TABLE — sticky header fix:
+            The trick is to NOT use overflow-x-auto on the same element as the table container.
+            Instead we use a fixed-height scrollable wrapper with overflow:auto, and the thead
+            uses sticky + top-0 with a z-index. The key is the scroll container must be the
+            one that clips the content — not a parent with overflow:visible. ── */}
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
+          {/* Table header bar */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
             <div className="flex items-center gap-3">
               <span className="text-white font-bold text-sm">BTS Monitoring Table</span>
               {search && (
                 <span className="text-xs text-slate-400 bg-slate-800 rounded-lg px-2 py-1">
                   {filtered.length} results for "{search}"
                 </span>
+              )}
+              {!search && !statusFilter && (
+                <span className="text-xs text-slate-600">{filtered.length} total</span>
               )}
             </div>
             <div className="text-xs text-slate-500">
@@ -346,114 +301,79 @@ export default function DashboardPage({ onAdminClick, onAskClick, onAnalyticsCli
               </div>
             </div>
           ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800/40 text-slate-400 text-xs uppercase tracking-wider">
-                      <th className="text-left px-5 py-3 font-semibold">#</th>
-                      <th className="text-left px-5 py-3 font-semibold">BTS Name</th>
-                      <th className="text-left px-5 py-3 font-semibold">IP Address</th>
-                      <th className="text-left px-5 py-3 font-semibold">Status</th>
-                      <th className="text-left px-5 py-3 font-semibold">Down Time</th>
-                      <th className="text-left px-5 py-3 font-semibold">Up Time</th>
-                      <th className="text-left px-5 py-3 font-semibold">Down 24h</th>
-                      <th className="text-left px-5 py-3 font-semibold">Up 24h</th>
-                      <th className="text-left px-5 py-3 font-semibold">Countdown</th>
-                      <th className="text-left px-5 py-3 font-semibold">Last Update</th>
-                      <th className="text-center px-5 py-3 font-semibold">Actions</th>
+            /* Scroll container — overflow:auto here enables sticky thead */
+            <div className="overflow-auto flex-1" style={{ maxHeight: "calc(100vh - 150px)" }}>
+              <table className="w-full text-sm" style={{ minWidth: "900px" }}>
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-slate-800 text-slate-400 text-xs uppercase tracking-wider">
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">#</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">BTS Name</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">IP Address</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Status</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Down Time</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Up Time</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Down 24h</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Up 24h</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Countdown</th>
+                    <th className="text-left px-5 py-3 font-semibold whitespace-nowrap">Last Update</th>
+                    <th className="text-center px-5 py-3 font-semibold whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="text-center py-16 text-slate-500">
+                        {search ? "No BTS found matching your search" : "No routers available"}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {paginated.length === 0 ? (
-                      <tr>
-                        <td colSpan={11} className="text-center py-16 text-slate-500">
-                          {search ? "No BTS found matching your search" : "No routers available"}
+                  ) : filtered.map((r, i) => {
+                    const isDown = r.status === "Down";
+                    return (
+                      <tr key={r.ip_address}
+                        className={`transition-colors hover:bg-slate-800/30 ${isDown ? "border-l-2 border-l-red-500/30" : "border-l-2 border-l-emerald-500/10"}`}>
+                        <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{i + 1}</td>
+                        <td className="px-5 py-3.5">
+                          <span className="text-white font-medium text-sm leading-tight">{r.bts_name}</span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="font-mono text-cyan-400/80 text-xs bg-slate-800/60 px-2 py-1 rounded-lg">{r.ip_address}</span>
+                        </td>
+                        <td className="px-5 py-3.5"><StatusBadge status={r.status} /></td>
+                        <td className="px-5 py-3.5">
+                          <span className={`font-mono text-xs ${isDown ? "text-red-400" : "text-slate-400"}`}>
+                            {formatSeconds(r.down_time)}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`font-mono text-xs ${!isDown ? "text-emerald-400" : "text-slate-400"}`}>
+                            {formatSeconds(r.up_time)}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="font-mono text-xs text-orange-400/80">{formatSeconds(r.down_time_last_24h)}</span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="font-mono text-xs text-teal-400/80">{formatSeconds(r.up_time_last_24h)}</span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="font-mono text-xs text-slate-300">{r.countdown}</span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="text-slate-400 text-xs font-mono">{formatTimeBD(r.updated_at)}</span>
+                        </td>
+                        <td className="px-5 py-3.5 text-center">
+                          <button onClick={() => setHistoryRouter(r)}
+                            className="inline-flex items-center gap-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/25 text-blue-400 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            History
+                          </button>
                         </td>
                       </tr>
-                    ) : paginated.map((r, i) => {
-                      const globalIdx = (page - 1) * PAGE_SIZE + i + 1;
-                      const isDown = r.status === "Down";
-                      return (
-                        <tr key={r.ip_address}
-                          className={`transition-colors hover:bg-slate-800/30 ${isDown ? "border-l-2 border-l-red-500/30" : "border-l-2 border-l-emerald-500/10"}`}>
-                          <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{globalIdx}</td>
-                          <td className="px-5 py-3.5">
-                            <span className="text-white font-medium text-sm leading-tight">{r.bts_name}</span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className="font-mono text-cyan-400/80 text-xs bg-slate-800/60 px-2 py-1 rounded-lg">{r.ip_address}</span>
-                          </td>
-                          <td className="px-5 py-3.5"><StatusBadge status={r.status} /></td>
-                          <td className="px-5 py-3.5">
-                            <span className={`font-mono text-xs ${isDown ? "text-red-400" : "text-slate-400"}`}>
-                              {formatSeconds(r.down_time)}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className={`font-mono text-xs ${!isDown ? "text-emerald-400" : "text-slate-400"}`}>
-                              {formatSeconds(r.up_time)}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className="font-mono text-xs text-orange-400/80">{formatSeconds(r.down_time_last_24h)}</span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className="font-mono text-xs text-teal-400/80">{formatSeconds(r.up_time_last_24h)}</span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            {r.countdown}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className="text-slate-400 text-xs font-mono">{formatTimeBD(r.updated_at)}</span>
-                          </td>
-                          <td className="px-5 py-3.5 text-center">
-                            <button
-                              onClick={() => setHistoryRouter(r)}
-                              className="inline-flex items-center gap-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/25 text-blue-400 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              History
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800">
-                  <span className="text-slate-400 text-sm">
-                    Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setPage(1)} disabled={page === 1}
-                      className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center">«</button>
-                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                      className="px-3 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all">← Prev</button>
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, idx) => {
-                      let p;
-                      if (totalPages <= 5) p = idx + 1;
-                      else if (page <= 3) p = idx + 1;
-                      else if (page >= totalPages - 2) p = totalPages - 4 + idx;
-                      else p = page - 2 + idx;
-                      return (
-                        <button key={p} onClick={() => setPage(p)}
-                          className={`w-8 h-8 rounded-lg text-sm font-semibold transition-all ${p === page ? "bg-cyan-500 text-white" : "bg-slate-800 hover:bg-slate-700 text-slate-400"}`}>
-                          {p}
-                        </button>
-                      );
-                    })}
-                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                      className="px-3 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all">Next →</button>
-                    <button onClick={() => setPage(totalPages)} disabled={page === totalPages}
-                      className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center">»</button>
-                  </div>
-                </div>
-              )}
-            </>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

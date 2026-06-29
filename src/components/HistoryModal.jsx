@@ -113,7 +113,7 @@ function AnalyticsPage({ router, onClose }) {
               </div>
 
               {/* Full detail table */}
-              <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
+              {/* <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-700/50">
                   <span className="text-white font-semibold text-sm">Full Analytics Details</span>
                 </div>
@@ -157,7 +157,7 @@ function AnalyticsPage({ router, onClose }) {
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </div> */}
             </>
           ) : null}
         </div>
@@ -302,7 +302,7 @@ export default function HistoryModal({ router, onClose }) {
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 flex flex-col min-h-0 px-6 pb-0">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <svg className="w-8 h-8 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24">
@@ -316,10 +316,10 @@ export default function HistoryModal({ router, onClose }) {
             <div className="text-center text-slate-500 py-8">No records found</div>
           ) : mode === "events" ? (
             // ── LAST EVENTS TABLE ──────────────────────────────────────────
-            // Columns: # | Status | Up Time | Down Time | Uptime 24h | Downtime 24h | Duration | Date
+            <div className="overflow-auto flex-1 mt-4" style={{ maxHeight: "calc(90vh - 280px)" }}>
             <table className="w-full text-sm">
-              <thead>
-                <tr className="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-slate-900 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
                   <th className="text-left pb-3 font-semibold pr-4">#</th>
                   <th className="text-left pb-3 font-semibold pr-4">Status</th>
                   <th className="text-left pb-3 font-semibold pr-4">Up Time</th>
@@ -368,12 +368,13 @@ export default function HistoryModal({ router, onClose }) {
                 })}
               </tbody>
             </table>
+            </div>
           ) : (
             // ── MORE HISTORY TABLE ─────────────────────────────────────────
-            // Columns: # | Status | Up Time | Down Time | Uptime 24h | Downtime 24h | Countdown | Date and Time
+            <div className="overflow-auto flex-1 mt-4" style={{ maxHeight: "calc(90vh - 280px)" }}>
             <table className="w-full text-sm">
-              <thead>
-                <tr className="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-slate-900 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
                   <th className="text-left pb-3 font-semibold pr-4">#</th>
                   <th className="text-left pb-3 font-semibold pr-4">Status</th>
                   <th className="text-left pb-3 font-semibold pr-4">Up Time</th>
@@ -412,6 +413,7 @@ export default function HistoryModal({ router, onClose }) {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 
