@@ -6,6 +6,7 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminPage from "./pages/AdminPage";
 import AskPage from "./pages/AskPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import ReportsPage from "./pages/ReportsPage";
 
 const fontLink = document.createElement("link");
 fontLink.href = "https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap";
@@ -14,7 +15,7 @@ document.head.appendChild(fontLink);
 
 function AppInner() {
   const { user, role, loading, setRole } = useAuth();
-  const [view, setView] = useState("dashboard"); // "dashboard"|"adminLogin"|"admin"|"ask"|"analytics"
+  const [view, setView] = useState("dashboard"); // "dashboard"|"adminLogin"|"admin"|"ask"|"analytics"|"reports"
 
   if (loading) {
     return (
@@ -42,6 +43,10 @@ function AppInner() {
     return <AnalyticsPage onBack={() => setView("dashboard")} />;
   }
 
+  if (view === "reports") {
+    return <ReportsPage onBack={() => setView("dashboard")} />;
+  }
+
   if (view === "adminLogin") {
     return (
       <AdminLoginPage
@@ -60,6 +65,7 @@ function AppInner() {
       onAdminClick={() => setView("adminLogin")}
       onAskClick={() => setView("ask")}
       onAnalyticsClick={() => setView("analytics")}
+      onReportsClick={() => setView("reports")}
       onLogout={() => setView("dashboard")}
     />
   );
