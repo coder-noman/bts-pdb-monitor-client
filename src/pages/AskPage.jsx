@@ -14,10 +14,18 @@ export default function AskPage({ onBack }) {
   const bottomRef = useRef(null);
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
+  const [speakingIndex, setSpeakingIndex] = useState(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Stop any speech when leaving the page
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    };
+  }, []);
 
   function startVoice() {
     const SpeechRecognition =
@@ -49,6 +57,42 @@ export default function AskPage({ onBack }) {
   function stopVoice() {
     recognitionRef.current?.stop();
     setListening(false);
+  }
+
+  // Text-to-speech: play/stop toggle per message, uses a male voice
+  function speakText(text, index) {
+    if (!window.speechSynthesis) {
+      alert("Your browser does not support text-to-speech.");
+      return;
+    }
+    // If this message is already speaking, stop it
+    if (speakingIndex === index) {
+      window.speechSynthesis.cancel();
+      setSpeakingIndex(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1;
+    utterance.pitch = 0.9; // slightly lower pitch for a male tone
+
+    const voices = window.speechSynthesis.getVoices();
+    const maleVoice = voices.find(
+      (v) =>
+        /male/i.test(v.name) ||
+        /David|Daniel|Google UK English Male|Microsoft David|Alex|Fred/i.test(
+          v.name
+        )
+    );
+    if (maleVoice) utterance.voice = maleVoice;
+
+    utterance.onend = () => setSpeakingIndex(null);
+    utterance.onerror = () => setSpeakingIndex(null);
+
+    setSpeakingIndex(index);
+    window.speechSynthesis.speak(utterance);
   }
 
   async function handleSend(e) {
@@ -157,6 +201,49 @@ export default function AskPage({ onBack }) {
                 >
                   {msg.text}
                 </div>
+
+                {/* Voice playback button — assistant messages only */}
+                {msg.role === "assistant" && !msg.error && (
+                  <button
+                    onClick={() => speakText(msg.text, i)}
+                    className={`mt-1.5 flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-lg transition-all ${
+                      speakingIndex === i
+                        ? "bg-purple-500/20 text-purple-300"
+                        : "text-slate-500 hover:text-purple-400 hover:bg-slate-800/60"
+                    }`}
+                  >
+                    {speakingIndex === i ? (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <rect x="6" y="5" width="4" height="14" rx="1" />
+                          <rect x="14" y="5" width="4" height="14" rx="1" />
+                        </svg>
+                        Stop
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M6 8h2l4-4v16l-4-4H6a1 1 0 01-1-1V9a1 1 0 011-1z"
+                          />
+                        </svg>
+                        Listen
+                      </>
+                    )}
+                  </button>
+                )}
 
                 {/* Data table */}
                 {msg.data && msg.data.length > 0 && (
