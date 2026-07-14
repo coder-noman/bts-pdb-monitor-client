@@ -27,6 +27,19 @@ function formatTimeOnlyBD(utcString) {
   }
 }
 
+function formatShortDateBD(utcString) {
+  if (!utcString) return "—";
+  try {
+    const d = new Date(utcString);
+    const day = d.toLocaleString("en-BD", { timeZone: "Asia/Dhaka", day: "numeric" });
+    const month = d.toLocaleString("en-BD", { timeZone: "Asia/Dhaka", month: "numeric" });
+    const year = d.toLocaleString("en-BD", { timeZone: "Asia/Dhaka", year: "2-digit" });
+    return `${day}/${month}/${year}`;
+  } catch {
+    return "—";
+  }
+}
+
 function toDisplayDate(apiDate) {
   if (!apiDate) return "";
   try {
@@ -213,6 +226,7 @@ function DayDetailModal({ ip, date, btsName, onClose }) {
                           <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Up Time</th>
                           <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Down Time</th>
                           <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Duration</th>
+                          <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
@@ -242,6 +256,13 @@ function DayDetailModal({ ip, date, btsName, onClose }) {
                               <td className="px-4 py-2.5 text-emerald-400/80 font-mono text-xs">{fmt(h.up_time)}</td>
                               <td className="px-4 py-2.5 text-red-400/80 font-mono text-xs">{fmt(h.down_time)}</td>
                               <td className="px-4 py-2.5 text-slate-300 text-xs font-mono">{duration}</td>
+                              <td className="px-4 py-2.5 text-slate-300 text-xs font-mono">
+                                {h.started_at
+                                  ? h.ended_at
+                                    ? `${formatShortDateBD(h.started_at)}-${formatShortDateBD(h.ended_at)}`
+                                    : formatShortDateBD(h.started_at)
+                                  : "—"}
+                              </td>
                             </tr>
                           );
                         })}
@@ -474,6 +495,7 @@ function BtsModal({ ip, start, end, isRange, btsName, rowDaysFound, onClose }) {
                           <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Up Time</th>
                           <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Down Time</th>
                           <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Duration</th>
+                          <th className="text-left px-4 py-2.5 font-semibold whitespace-nowrap">Date</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
@@ -503,6 +525,13 @@ function BtsModal({ ip, start, end, isRange, btsName, rowDaysFound, onClose }) {
                               <td className="px-4 py-2.5 text-emerald-400/80 font-mono text-xs">{fmt(h.up_time)}</td>
                               <td className="px-4 py-2.5 text-red-400/80 font-mono text-xs">{fmt(h.down_time)}</td>
                               <td className="px-4 py-2.5 text-slate-300 text-xs font-mono">{duration}</td>
+                              <td className="px-4 py-2.5 text-slate-300 text-xs font-mono">
+                                {h.started_at
+                                  ? h.ended_at
+                                    ? `${formatShortDateBD(h.started_at)}-${formatShortDateBD(h.ended_at)}`
+                                    : formatShortDateBD(h.started_at)
+                                  : "—"}
+                              </td>
                             </tr>
                           );
                         })}
