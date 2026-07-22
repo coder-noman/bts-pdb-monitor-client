@@ -630,11 +630,40 @@ export default function ReportsPage({ onBack }) {
     if (e.key === "Enter") runSearch();
   }
 
+  async function handleYesterday() {
+    setMode("yesterday");
+    setLoading(true);
+    setError("");
+    setData(null);
+    setBtsSearch("");
+    setSearchedStart("");
+    setSearchedEnd("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/analytics/yesterday`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      const arr = extractArray(json);
+      setData(sortByDowntime(arr));
+      setRangeDaysFound(null);
+      // Capture the actual date returned by the API so the header shows it correctly
+      const yDate = json?.date || arr[0]?.date || arr[0]?.summary_date || null;
+      setSearchedStart(yDate || "");
+    } catch (e) {
+      setError("Failed to fetch data: " + e.message);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleExport() {
     setExporting(true);
     try {
       let url, filename;
-      if (mode === "range" && searchedStart && searchedEnd) {
+      if (mode === "yesterday") {
+        url = `${API_BASE_URL}/api/analytics/yesterday/excel`;
+        filename = `bts-report-yesterday.xlsx`;
+      } else if (mode === "range" && searchedStart && searchedEnd) {
         url = `${API_BASE_URL}/api/analytics/range/all/excel?start=${searchedStart}&end=${searchedEnd}`;
         filename = `bts-report-${searchedStart}_to_${searchedEnd}.xlsx`;
       } else if (searchedStart) {
@@ -773,6 +802,17 @@ export default function ReportsPage({ onBack }) {
               className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all whitespace-nowrap"
             >
               {loading ? "..." : "Search"}
+            </button>
+
+            <button
+              onClick={handleYesterday}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-4 py-2 bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 hover:border-indigo-500/50 text-slate-300 hover:text-white rounded-xl text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Yesterday
             </button>
           </div>
 
